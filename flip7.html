@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flip 7 - Marcador</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 100vh;
+      color: #fff;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 6px;
+      background: linear-gradient(90deg, #f7c948, #ff6b6b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #a0a8c0;
+      margin-bottom: 24px;
+      font-size: 0.9rem;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      backdrop-filter: blur(10px);
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #f7c948;
+      margin-bottom: 14px;
+    }
+
+    /* Add player section */
+    .add-player-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    input[type="text"], input[type="number"] {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: #fff;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]::placeholder, input[type="number"]::placeholder {
+      color: #666a8a;
+    }
+
+    input[type="text"]:focus, input[type="number"]:focus {
+      border-color: #f7c948;
+    }
+
+    input[type="text"] { flex: 1; }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+
+    button:active { transform: scale(0.96); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #f7c948, #ff9800);
+      color: #1a1a2e;
+    }
+
+    .btn-danger {
+      background: rgba(255, 80, 80, 0.2);
+      color: #ff6b6b;
+      border: 1px solid rgba(255,80,80,0.3);
+      padding: 6px 12px;
+      font-size: 0.8rem;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #43e97b, #38f9d7);
+      color: #1a1a2e;
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.1);
+      color: #ccc;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+
+    /* Round info bar */
+    .round-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .round-badge {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #f7c948;
+    }
+
+    .round-actions { display: flex; gap: 8px; }
+
+    /* Score entry grid */
+    .score-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      padding: 10px 14px;
+    }
+
+    .score-row .player-name {
+      flex: 1;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .score-row input[type="number"] {
+      width: 90px;
+      text-align: center;
+    }
+
+    .score-row .total-badge {
+      min-width: 60px;
+      text-align: right;
+      font-weight: 700;
+      color: #43e97b;
+      font-size: 1rem;
+    }
+
+    /* Scoreboard table */
+    .scoreboard-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    thead th {
+      background: rgba(247,201,72,0.15);
+      color: #f7c948;
+      padding: 10px 12px;
+      text-align: center;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    thead th:first-child { text-align: left; }
+
+    tbody tr:nth-child(odd) { background: rgba(255,255,255,0.03); }
+    tbody tr:nth-child(even) { background: rgba(255,255,255,0.06); }
+
+    tbody tr.leader { background: rgba(247,201,72,0.08); }
+
+    tbody td {
+      padding: 10px 12px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      white-space: nowrap;
+    }
+
+    tbody td:first-child { text-align: left; font-weight: 600; }
+
+    td.round-score { color: #a0a8c0; }
+    td.total-score { font-weight: 700; color: #43e97b; font-size: 1rem; }
+    td.total-score.leader-score { color: #f7c948; font-size: 1.05rem; }
+
+    .crown { font-size: 0.9rem; margin-right: 4px; }
+
+    /* No players */
+    .empty-state {
+      text-align: center;
+      color: #555a7a;
+      padding: 20px 0;
+      font-style: italic;
+    }
+
+    /* Winner banner */
+    .winner-banner {
+      text-align: center;
+      padding: 16px;
+      background: linear-gradient(135deg, rgba(247,201,72,0.2), rgba(255,107,107,0.2));
+      border: 1px solid rgba(247,201,72,0.4);
+      border-radius: 14px;
+      margin-bottom: 20px;
+    }
+
+    .winner-banner h2 { font-size: 1.4rem; color: #f7c948; margin-bottom: 4px; }
+    .winner-banner p { color: #ccc; font-size: 0.9rem; }
+
+    /* Reset confirm */
+    .reset-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 10px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #43e97b;
+      color: #1a1a2e;
+      padding: 10px 22px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: transform 0.3s ease;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 480px) {
+      h1 { font-size: 1.8rem; }
+      .score-row input[type="number"] { width: 70px; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>🃏 Flip 7</h1>
+<p class="subtitle">Marcador de partida</p>
+
+<div id="winner-banner" class="winner-banner" style="display:none"></div>
+
+<!-- Jugadores -->
+<div class="card">
+  <h2>Jugadores</h2>
+  <div class="add-player-row">
+    <input type="text" id="player-input" placeholder="Nombre del jugador" maxlength="20" />
+    <button class="btn-primary" onclick="addPlayer()">Agregar</button>
+  </div>
+  <div id="player-list" style="margin-top:12px"></div>
+</div>
+
+<!-- Ronda actual -->
+<div class="card" id="round-card" style="display:none">
+  <div class="round-bar">
+    <div>
+      <h2 style="margin-bottom:2px">Puntuación</h2>
+      <span class="round-badge" id="round-label">Ronda 1</span>
+    </div>
+    <div class="round-actions">
+      <button class="btn-success" onclick="submitRound()">Confirmar ronda</button>
+    </div>
+  </div>
+  <div id="score-grid" class="score-grid" style="margin-top:16px"></div>
+</div>
+
+<!-- Tabla de puntajes -->
+<div class="card" id="scoreboard-card" style="display:none">
+  <h2>Tabla de puntajes</h2>
+  <div class="scoreboard-wrap">
+    <table id="scoreboard"></table>
+  </div>
+  <div class="reset-row">
+    <button class="btn-danger" onclick="confirmReset()">Reiniciar partida</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let players = [];   // { name, scores: [] }
+  let round = 1;
+
+  const playerInput = document.getElementById('player-input');
+  playerInput.addEventListener('keydown', e => { if (e.key === 'Enter') addPlayer(); });
+
+  function addPlayer() {
+    const name = playerInput.value.trim();
+    if (!name) return;
+    if (players.find(p => p.name.toLowerCase() === name.toLowerCase())) {
+      showToast('Ya existe ese jugador', '#ff6b6b');
+      return;
+    }
+    players.push({ name, scores: [] });
+    playerInput.value = '';
+    playerInput.focus();
+    renderAll();
+  }
+
+  function removePlayer(index) {
+    if (round > 1) {
+      if (!confirm('Eliminar jugador borrará su historial. ¿Continuar?')) return;
+    }
+    players.splice(index, 1);
+    renderAll();
+  }
+
+  function renderAll() {
+    renderPlayerList();
+    renderRoundCard();
+    renderScoreboard();
+    renderWinner();
+  }
+
+  function renderPlayerList() {
+    const el = document.getElementById('player-list');
+    if (!players.length) {
+      el.innerHTML = '<p class="empty-state">Agrega al menos un jugador para comenzar.</p>';
+      return;
+    }
+    el.innerHTML = players.map((p, i) => `
+      <div class="score-row" style="margin-top:8px">
+        <span class="player-name">${escHtml(p.name)}</span>
+        <button class="btn-danger" onclick="removePlayer(${i})">Quitar</button>
+      </div>
+    `).join('');
+  }
+
+  function renderRoundCard() {
+    const card = document.getElementById('round-card');
+    if (!players.length) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    document.getElementById('round-label').textContent = `Ronda ${round}`;
+
+    const grid = document.getElementById('score-grid');
+    grid.innerHTML = players.map((p, i) => {
+      const total = p.scores.reduce((a, b) => a + b, 0);
+      return `
+        <div class="score-row">
+          <span class="player-name">${escHtml(p.name)}</span>
+          <input type="number" id="score-${i}" placeholder="Pts" min="-999" max="999" />
+          <span class="total-badge">${total} pts</span>
+        </div>
+      `;
+    }).join('');
+
+    // focus first input
+    const first = document.getElementById('score-0');
+    if (first) first.focus();
+  }
+
+  function submitRound() {
+    const anyFilled = players.some((_, i) => {
+      const v = document.getElementById(`score-${i}`).value;
+      return v !== '';
+    });
+    if (!anyFilled) {
+      showToast('Ingresa al menos un puntaje', '#ff9800');
+      return;
+    }
+
+    players.forEach((p, i) => {
+      const raw = document.getElementById(`score-${i}`).value;
+      const val = raw === '' ? 0 : parseInt(raw, 10);
+      p.scores.push(isNaN(val) ? 0 : val);
+    });
+
+    round++;
+    renderAll();
+    showToast(`Ronda ${round - 1} guardada ✓`);
+  }
+
+  function renderScoreboard() {
+    const card = document.getElementById('scoreboard-card');
+    const table = document.getElementById('scoreboard');
+
+    if (!players.length || players.every(p => p.scores.length === 0)) {
+      card.style.display = 'none';
+      return;
+    }
+
+    card.style.display = 'block';
+    const maxRounds = Math.max(...players.map(p => p.scores.length));
+    const totals = players.map(p => p.scores.reduce((a, b) => a + b, 0));
+    const maxTotal = Math.max(...totals);
+
+    // Header
+    let head = '<thead><tr><th>Jugador</th>';
+    for (let r = 1; r <= maxRounds; r++) head += `<th>R${r}</th>`;
+    head += '<th>Total</th></tr></thead>';
+
+    // Body
+    let body = '<tbody>';
+    players.forEach((p, i) => {
+      const isLeader = totals[i] === maxTotal;
+      body += `<tr class="${isLeader ? 'leader' : ''}">`;
+      body += `<td>${isLeader ? '<span class="crown">👑</span>' : ''}${escHtml(p.name)}</td>`;
+      for (let r = 0; r < maxRounds; r++) {
+        const sc = p.scores[r] !== undefined ? p.scores[r] : '-';
+        const cls = sc === '-' ? '' : (sc >= 0 ? '' : 'style="color:#ff6b6b"');
+        body += `<td class="round-score" ${cls}>${sc}</td>`;
+      }
+      body += `<td class="total-score ${isLeader ? 'leader-score' : ''}">${totals[i]}</td>`;
+      body += '</tr>';
+    });
+    body += '</tbody>';
+
+    table.innerHTML = head + body;
+  }
+
+  function renderWinner() {
+    // Show winner only if game has been played
+    const banner = document.getElementById('winner-banner');
+    if (!players.length || players.every(p => p.scores.length === 0)) {
+      banner.style.display = 'none';
+      return;
+    }
+    const totals = players.map(p => p.scores.reduce((a, b) => a + b, 0));
+    const maxTotal = Math.max(...totals);
+    const leaders = players.filter((_, i) => totals[i] === maxTotal);
+    const names = leaders.map(p => p.name).join(' & ');
+    banner.style.display = 'block';
+    banner.innerHTML = `<h2>👑 ${escHtml(names)}</h2><p>Puntaje más alto · ${maxTotal} pts en ${round - 1} ronda${round > 2 ? 's' : ''}</p>`;
+  }
+
+  function confirmReset() {
+    if (!confirm('¿Reiniciar toda la partida? Se borrará el historial de puntajes.')) return;
+    players.forEach(p => p.scores = []);
+    round = 1;
+    renderAll();
+    showToast('Partida reiniciada', '#f7c948');
+  }
+
+  function showToast(msg, color = '#43e97b') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.background = color;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // Init
+  renderAll();
+</script>
+</body>
+</html>
